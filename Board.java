@@ -14,7 +14,9 @@ public class Board {
     private int row;
     private char[][] board;
     private int occupancy;
-    
+
+    private static boolean debug;
+
     public Board (int colInput, int rowInput) {
 
         // Number of rows and columns
@@ -35,7 +37,7 @@ public class Board {
                 }
             }
         }
-        
+
         // Occupancy of the gameboard is how many walls can be drawn
         this.occupancy = (colInput * (rowInput + 1)) + 
             (rowInput * (colInput + 1));
@@ -44,7 +46,7 @@ public class Board {
     public void clearBoard () {
 
         // Adding Dots and filling Spaces
-    	for (int i = 0; i < row; i++) {
+        for (int i = 0; i < row; i++) {
             for (int j = 0; j < col; j++) {
                 if ((i%2==0) && (j%2==0)) {
                     board[i][j] = '•';
@@ -58,6 +60,14 @@ public class Board {
 
     public int getOccupancy () {
         return occupancy;
+    }
+
+    public static void debugOff () {
+        debug = false;
+    }
+
+    public static void debugOn () {
+        debug = true;
     }
 
     public String toString () {
@@ -88,7 +98,27 @@ public class Board {
 
             for (int j = 0; j < col; j++) {
                 returned += " ";
-                returned += board[i][j];
+
+                if (debug) {
+                    // Print all characters
+                    if (board[i][j] != '0') {
+                        returned += board[i][j];
+                    }
+                    // Don't print 0s
+                    else {
+                        returned += ' ';
+                    }
+                }
+                else {
+                    // Don't print wallCounts
+                    if ((board[i][j] >= '0') && (board[i][j] < '4')) {
+                        returned += ' ';
+                    }
+                    // Print dots and walls
+                    else {
+                        returned += board[i][j];
+                    }
+                }
             }
             returned += "\n";
 
@@ -167,7 +197,7 @@ public class Board {
     }
 
     public void fillPosition (String input) {
-  
+
         // Check if position is available
         if (testPosition(input) && (occupancy > 0)) {
             // Gets input from String
@@ -195,4 +225,72 @@ public class Board {
         }
     }
 
+    public boolean setBoxValue (boolean player1) {
+
+        boolean checker = false;
+
+        for (int i = 0; i < row; i++) {
+            for (int j = 0; j < col; j++) {
+                if ((i % 2 != 0) && (j % 2 != 0)) {
+
+                    int wallCount = 0;
+
+                    if (board[i - 1][j] != ' ') {
+                        wallCount++;
+                    }
+                    if (board[i + 1][j] != ' ') {
+                        wallCount++;
+                    }
+                    if (board[i][j - 1] != ' ') {
+                        wallCount++;
+                    }
+                    if (board[i][j + 1] != ' ') {
+                        wallCount++;
+                    }
+
+                    if (wallCount == 4) {
+                        if ((board[i][j] != 'X') && (board[i][j] != 'O')) {
+                            if (player1) {
+                                board[i][j] = 'X';
+                            }
+                            else {
+                                board[i][j] = 'O';
+                            }
+                            checker = true;
+                        }
+
+                    }
+                    else {
+                        board[i][j] = (char)('0' + wallCount);
+                    }
+                }
+            }
+        }
+        return checker;
+
+    }
+
+    public int countScore (boolean player1) {
+   
+        int counter = 0;
+
+        for (int i = 0; i < row; i++) {
+            for (int j = 0; j < col; j++) {
+                if ((i % 2 != 0) && (j % 2 != 0)) {
+                    
+                    if (player1) {
+                        if (board[i][j] == 'X') {
+                            counter++;
+                        }
+                    }
+                    else {
+                        if (board[i][j] == 'O') {
+                            counter++;
+                        }
+                    }
+                }
+            }
+        }
+        return counter;
+    }
 }
