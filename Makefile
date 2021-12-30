@@ -13,7 +13,7 @@
 .java.class:
 	javac -g $<
 
-Driver: Driver.java Board.java
+Driver: Driver.java Board.java Computer.java
 	javac Driver.java
 	echo 'java Driver $$*' > Driver
 	chmod ug+rx Driver

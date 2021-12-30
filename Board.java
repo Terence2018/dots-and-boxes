@@ -10,10 +10,14 @@ import java.io.*;
 
 public class Board {
 
-    private int col;
-    private int row;
-    private char[][] board;
-    private int occupancy;
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_BLUE = "\u001B[34m";
+    public static final String ANSI_RESET = "\u001B[0m";
+
+    public int col;
+    public int row;
+    public char[][] board;
+    public int occupancy;
 
     private static boolean debug;
 
@@ -62,12 +66,38 @@ public class Board {
         return occupancy;
     }
 
+    public int getRow () {
+        return row;
+    }
+
+    public int getCol () {
+        return col;
+    }
+
     public static void debugOff () {
         debug = false;
     }
 
     public static void debugOn () {
         debug = true;
+    }
+
+    public static boolean getDebug () {
+        return debug;
+    }
+
+    public static char[][] copyBoard (Board gameBoard) {
+        return gameBoard.board;
+    }
+
+    public static void printArray (char[][] array) {
+
+        for (int i = 0; i < array.length; i++) {
+            for (int j = 0; j < array[0].length; j++) {
+                System.out.print(array[i][j] + " ");
+            }
+            System.out.println();
+        }
     }
 
     public String toString () {
@@ -102,7 +132,16 @@ public class Board {
                 if (debug) {
                     // Print all characters
                     if (board[i][j] != '0') {
-                        returned += board[i][j];
+                        //returned += board[i][j];
+                        if (board[i][j] == 'X') {
+                            returned += ANSI_RED + "X";
+                        }
+                        else if (board[i][j] == 'O') {
+                            returned += ANSI_BLUE + "O";
+                        }
+                        else {
+                            returned += ANSI_RESET + board[i][j];
+                        }
                     }
                     // Don't print 0s
                     else {
@@ -116,7 +155,15 @@ public class Board {
                     }
                     // Print dots and walls
                     else {
-                        returned += board[i][j];
+                        if (board[i][j] == 'X') {
+                            returned += ANSI_RED + "X";
+                        }
+                        else if (board[i][j] == 'O') {
+                            returned += ANSI_BLUE + "O";
+                        }
+                        else {
+                            returned += ANSI_RESET + board[i][j];
+                        }
                     }
                 }
             }
@@ -126,7 +173,28 @@ public class Board {
         return returned;
     }
 
-    public boolean testPosition (String input) {
+    public void printNoBorders () {
+        for (int i = 0; i < row; i++) {
+            for (int j = 0; j < col; j++) {
+                if ((i % 2 != 0) && (j % 2 != 0)) {
+                    if (board[i][j] == 'X') {
+                        System.out.print(ANSI_RED + "X ");
+                    }
+                    else if (board[i][j] == 'O') {
+                        System.out.print(ANSI_BLUE + "O ");
+                    }
+                    else {
+                        System.out.print(ANSI_RESET + "  ");
+                    }
+                }
+            }
+            if (i % 2 != 0) {
+                System.out.println(ANSI_RESET);
+            }
+        }
+    }
+
+    public boolean testPosition (String input, boolean fromComputer) {
 
         // Gets the Character from the string
         char inputChar = input.charAt(0);
@@ -136,7 +204,9 @@ public class Board {
             inputInt = Integer.parseInt(input.substring(1));
         }
         catch (Exception e) {
-            System.out.print("Invalid Format: ");
+            if (!fromComputer) {
+                System.out.print("Invalid Format: ");
+            }
             return false;
         }
 
@@ -146,11 +216,15 @@ public class Board {
 
         // Check if the indexes are within the table confines
         if ((colNum >= col) || (colNum < 0)) {
-            System.out.print("Column " + inputChar + ": ");
+            if (!fromComputer) {
+                System.out.print("Column " + inputChar + ": ");
+            }
             return false;
         }
         if ((rowNum >= row) || (rowNum < 0)) {
-            System.out.print("Row " + inputInt + ": ");
+            if (!fromComputer) {
+                System.out.print("Row " + inputInt + ": ");
+            }
             return false;
         }
 
@@ -158,7 +232,9 @@ public class Board {
         if (colNum % 2 == 0) {
             // If row is even, position not possible
             if (rowNum % 2 == 0) {
-                System.out.print("Invalid Position: ");
+                if (!fromComputer) {
+                    System.out.print("Invalid Position: ");
+                }
                 return false;
             }
             // If row is odd
@@ -169,7 +245,9 @@ public class Board {
                 }
                 // position is full
                 else {
-                    System.out.print("Position Filled: ");
+                    if (!fromComputer) {
+                        System.out.print("Position Filled: ");
+                    }
                     return false;
                 }
             }
@@ -184,13 +262,17 @@ public class Board {
                 }
                 // position is full
                 else {
-                    System.out.print("Position Filled: ");
+                    if (!fromComputer) {
+                        System.out.print("Position Filled: ");
+                    }
                     return false;
                 }
             }
             // If row is odd, position not possible
             else {
-                System.out.print("Invalid Position: ");
+                if (!fromComputer) {
+                    System.out.print("Invalid Position: ");
+                }
                 return false;
             }
         }
@@ -199,7 +281,7 @@ public class Board {
     public void fillPosition (String input) {
 
         // Check if position is available
-        if (testPosition(input) && (occupancy > 0)) {
+        if (testPosition(input, false) && (occupancy > 0)) {
             // Gets input from String
             char inputChar = input.charAt(0);
             int inputInt = Integer.parseInt(input.substring(1));
@@ -271,13 +353,13 @@ public class Board {
     }
 
     public int countScore (boolean player1) {
-   
+
         int counter = 0;
 
         for (int i = 0; i < row; i++) {
             for (int j = 0; j < col; j++) {
                 if ((i % 2 != 0) && (j % 2 != 0)) {
-                    
+
                     if (player1) {
                         if (board[i][j] == 'X') {
                             counter++;
